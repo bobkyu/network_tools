@@ -8,10 +8,11 @@ curl_cmd = f'curl {url}  -w "DNS_TIME:%{{time_namelookup}}   TCP_CONNECT_TIME:%{
 
 curl_result = os.popen(curl_cmd).readlines()
 # DNS解析时间
-dns_time = re.findall('DNS_TIME:(\d+.\d+)', str(curl_result))
+dns_time_ls = re.findall('DNS_TIME:(\d+.\d+)', str(curl_result))
+dns_time = round(float(dns_time_ls[0]), 3)
 # TCP建立连接时间
 tcp_connect_time_ls = re.findall('TCP_CONNECT_TIME:(\d+.\d+)', str(curl_result))
-tcp_connect_time = round(float(tcp_connect_time_ls[0]) - float(dns_time[0]), 3)
+tcp_connect_time = round(float(tcp_connect_time_ls[0]) - float(dns_time_ls[0]), 3)
 # SSL建立连接时间
 ssl_connect_time_ls = re.findall('SSL_CONNECT_TIME:(\d+.\d+)', str(curl_result))
 ssl_connect_time = round(float(ssl_connect_time_ls[0]) - float(tcp_connect_time_ls[0]), 3)
@@ -28,13 +29,21 @@ first_packet_time = round(float(first_packet_time_ls[0]) - float(start_http_time
 http_total_time =  round(float(total_time_ls[0]) - float(start_http_time_ls[0]), 3)
 
 
-print(curl_result,'\n')
-print('====网络性能====')
-print(f'DNS解析时间为：{dns_time[0]} 秒')
-print(f'TCP建连时间为：{tcp_connect_time} 秒')
-print(f'SSL建连时间为：{ssl_connect_time} 秒')
-print('\n====系统性能====')
-print(f'建连后开始请求时间：{start_http_time} 秒')
-print(f'HTTP首包响应时间：{first_packet_time} 秒')
-print(f'HTTP请求总耗时：  {http_total_time} 秒')
-print(f'\n总体耗时：{total_time} 秒')
+output = f'''
+====网络性能====
+DNS解析时间为：{dns_time} 秒
+TCP建连时间为：{tcp_connect_time} 秒
+SSL建连时间为：{ssl_connect_time} 秒
+
+====系统性能====
+建连后开始请求时间：{start_http_time} 秒
+HTTP首包响应时间： {first_packet_time} 秒
+HTTP请求总耗时：   {http_total_time} 秒
+
+总体耗时：{total_time} 秒
+
+====原始输出====
+{curl_result}
+'''
+
+print(output)
